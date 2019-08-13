@@ -1,0 +1,88 @@
+% STOP_MOTION puts images at (X,Y) on each pages so you can riffle the pages and get a nice stop motion effect!
+% The images must be assemble in a single folder with all the same names plus an index starting at 1 (e.g. image1.png, image2.png, image3.png, etc)
+%
+% To use it, after including the package, one must initialize STOP_MOTION by using the \initializeStopMotion{path_to_images}{number_of_images}{x_position}{y_position}{size} command. 
+% Where x_position and y_position are the coordinates on the page (if twoside is defined, the even pages uses -x_position instead). 
+% The path_to_images is the relative or absolute path to the images, including the name of the images, but excluding the indices and extension. 
+% The number_of_images is the maximum number of images to draw before restarting to 1.
+%
+% Afterwards, when they want to start the drawing of the images on the document, they must use the command \startStopMotion{starting_index} where starting_index default value is 1. 
+% To stop the stop motion, one can use the command \terminateStopMotion. 
+% Please note that it is possible to restart the drawing, but default index will be again 1 and not the last one when the stop motion was terminated.
+% 
+% It is possible to rescale or reposition the image using the commands \setStopMotionSize{new_size} and \setStopMotionPosition{x_position}{y_position}, which are pretty self-describing!
+%
+% Enjoy stop motionning your documents!
+%
+% Written by Pariterre on the 13th of August, 2019
+
+
+\usepackage{ifthen}
+\usepackage{eso-pic}
+\usepackage{graphicx}
+\usepackage{changepage}
+
+\makeatletter
+
+% Initializer that set all the parameters. 
+% The parameters are {x_pos}{y_pos}{imgPath}{nbImageInFolder}
+\newcommand{\initializeStopMotion}[5]{
+  \newcommand{\stopMotionPath}{#1} % Path to images without their numbering nor extension
+  \newcommand{\stopMotionX}{#3} % X position of the image (if twoside is ON, the even pages are defined as -X)
+  \newcommand{\stopMotionY}{#4} % Y position of the image
+  \newcommand{\stopMotionSize}{#5} % Size of the image
+  \newcounter{stopMotionCounter} % Internal counter 
+  \setcounter{stopMotionCounter}{-1} % -1 means, no image to plot
+  \newcommand{\stopMotionNbImages}{#2} % Number of images in the folder
+  \AddToShipoutPictureBG{ 
+    \ifthenelse{\thestopMotionCounter < 0}{
+      % If \thestopMotionCounter -1, don't draw
+    }{
+      % Otherwise draw an image at (\stopMotionX,\stopMotionY)
+      \makeatletter
+      \if@twoside
+        \checkoddpage
+        \ifthenelse{\boolean{oddpage}}{
+          \stopMotionDrawGraph{}
+        }{
+          \stopMotionDrawGraph{-}
+        }
+      \else
+        \stopMotionDrawGraph{}
+      \fi
+    }
+  }
+}
+
+
+\newcommand{\stopMotionDrawGraph}[1]{
+  \put(#1\stopMotionX,\stopMotionY){
+    \parbox[b][\paperheight]{\paperwidth}{%
+      \vfill
+      \centering
+      \includegraphics[width=\stopMotionSize]{\stopMotionPath\thestopMotionCounter.png} % The image
+      % Add 1 to counter. If it is greater than the number of images, return to 1
+      \ifthenelse{\thestopMotionCounter < \stopMotionNbImages}{
+        \addtocounter{stopMotionCounter}{1}
+      }{
+        \setcounter{stopMotionCounter}{1}
+      } 
+      \vfill
+    } 
+  }
+}
+
+% User interface
+% Change the size of the image 
+\newcommand{\setStopMotionSize}[1]{\renewcommand{\stopMotionSize}{#1}}
+% Change the (X, Y) position of the image 
+\newcommand{\setStopMotionPosition}[2]{\renewcommand{\stopMotionX}{#1}\renewcommand{\stopMotionY}{#2}}
+	  
+% Start showing images, put the counter at given index (default = 1)
+\newcommand{\startStopMotion}[1][1]{
+      \setcounter{stopMotionCounter}{#1}}
+
+% Stop showing images
+\newcommand{\terminateStopMotion}{\setcounter{stopMotionCounter}{-1}} 
+
+\makeatother
