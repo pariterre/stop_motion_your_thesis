@@ -3,11 +3,11 @@
 
 % Load the document
 \documentclass[a4paper,10pt,twoside]{article} % oneside also works fine
-\usepackage[utf8]{inputenc}
+\usepackage[utf8]{inputenc} 
 
 % Load and initialize the stop_motion package
-\usepackage{stop_motion}
-\initializeStopMotion{./images/stop}{24}{200}{-370}{.05\textheight}
+\usepackage[leftonly]{stopmotion} % leftonly or bothpages (default) are also options (this is only relevant when oneside is on)
+\initializeStopMotion{./images/stop}{24}{200}{370}{.05\textheight}
 
 % Populate the document with some lorem ipsum text
 % Start the stop motion on page 3 at index 5, modify some aspect on page 10 and terminate on page 15
@@ -761,7 +761,7 @@ Praesent quis tempus augue.
 In ultricies in ligula nec consectetur.
 Maecenas laoreet semper mi non pulvinar.
 
-\setStopMotionPosition{40}{-370}
+\setStopMotionPosition{40}{370}
 \setStopMotionSize{0.05\textwidth}
 Sed non tristique risus.
 Morbi in mauris nunc.

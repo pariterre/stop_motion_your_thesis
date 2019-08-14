@@ -1,8 +1,11 @@
 % STOP_MOTION puts images at (X,Y) on each pages so you can riffle the pages and get a nice stop motion effect!
 % The images must be assemble in a single folder with all the same names plus an index starting at 1 (e.g. image1.png, image2.png, image3.png, etc)
 %
-% To use it, after including the package, one must initialize STOP_MOTION by using the \initializeStopMotion{path_to_images}{number_of_images}{x_position}{y_position}{size} command. 
-% Where x_position and y_position are the coordinates on the page (if twoside is defined, the even pages uses -x_position instead). 
+% When usepackage is invoke, one can pass bothpages/rightonly/leftonly options to choose where to put the images. 
+% This is only relevant if twoside is on.
+% 
+% Afterwards, one must initialize STOP_MOTION by using the \initializeStopMotion{path_to_images}{number_of_images}{x_position}{y_position}{size} command. 
+% Where x_position and y_position are the coordinates on the page relative to center (if twoside is defined, the even pages uses -x_position instead). 
 % The path_to_images is the relative or absolute path to the images, including the name of the images, but excluding the indices and extension. 
 % The number_of_images is the maximum number of images to draw before restarting to 1.
 %
@@ -15,21 +18,44 @@
 % Enjoy stop motionning your documents!
 %
 % Written by Pariterre on the 13th of August, 2019
-
+\ProvidesPackage{stopmotion}
 
 \usepackage{ifthen}
 \usepackage{eso-pic}
 \usepackage{graphicx}
 \usepackage{changepage}
+\usepackage{kvoptions}
 
 \makeatletter
+
+% If oneside is on, allows for the user to only write on right or left pages only
+\newif\ifstopmotion@bothpages
+\newif\ifstopmotion@leftonly
+\newif\ifstopmotion@rightonly
+\DeclareOption{bothpages}{
+  \stopmotion@bothpagestrue
+  \stopmotion@leftonlyfalse
+  \stopmotion@rightonlyfalse
+}
+\DeclareOption{leftonly}{
+  \stopmotion@bothpagesfalse
+  \stopmotion@leftonlytrue
+  \stopmotion@rightonlyfalse
+}
+\DeclareOption{rightonly}{
+  \stopmotion@bothpagesfalse
+  \stopmotion@leftonlyfalse
+  \stopmotion@rightonlytrue
+}
+\ExecuteOptions{bothpages} % default is bothpages
+\ProcessOptions\relax
 
 % Initializer that set all the parameters. 
 % The parameters are {x_pos}{y_pos}{imgPath}{nbImageInFolder}
 \newcommand{\initializeStopMotion}[5]{
   \newcommand{\stopMotionPath}{#1} % Path to images without their numbering nor extension
   \newcommand{\stopMotionX}{#3} % X position of the image (if twoside is ON, the even pages are defined as -X)
-  \newcommand{\stopMotionY}{#4} % Y position of the image
+  \newcommand{\stopMotionY}{-#4} % Y position of the image
   \newcommand{\stopMotionSize}{#5} % Size of the image
   \newcounter{stopMotionCounter} % Internal counter 
   \setcounter{stopMotionCounter}{-1} % -1 means, no image to plot
@@ -43,9 +69,11 @@
       \if@twoside
         \checkoddpage
         \ifthenelse{\boolean{oddpage}}{
-          \stopMotionDrawGraph{}
+          \ifstopmotion@bothpages\stopMotionDrawGraph{-}\fi
+          \ifstopmotion@leftonly\stopMotionDrawGraph{-}\fi
         }{
-          \stopMotionDrawGraph{-}
+          \ifstopmotion@bothpages\stopMotionDrawGraph{}\fi
+          \ifstopmotion@rightonly\stopMotionDrawGraph{}\fi
         }
       \else
         \stopMotionDrawGraph{}
@@ -76,7 +104,7 @@
 % Change the size of the image 
 \newcommand{\setStopMotionSize}[1]{\renewcommand{\stopMotionSize}{#1}}
 % Change the (X, Y) position of the image 
-\newcommand{\setStopMotionPosition}[2]{\renewcommand{\stopMotionX}{#1}\renewcommand{\stopMotionY}{#2}}
+\newcommand{\setStopMotionPosition}[2]{\renewcommand{\stopMotionX}{#1}\renewcommand{\stopMotionY}{-#2}}
 	  
 % Start showing images, put the counter at given index (default = 1)
 \newcommand{\startStopMotion}[1][1]{
