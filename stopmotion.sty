@@ -51,7 +51,7 @@
 \ProcessOptions\relax
 
 \newboolean{shoulddraw}
-\setboolean{shoulddraw}{true}
+\setboolean{shoulddraw}{false}
 
 % Initializer that set all the parameters. 
 % The parameters are {x_pos}{y_pos}{imgPath}{nbImageInFolder}
@@ -89,7 +89,7 @@
     \parbox[b][\paperheight]{\paperwidth}{%
       \vfill
       \centering
-      \includegraphics[width=\stopMotionSize]{\stopMotionPath\thestopMotionCounter} % The image
+      \includegraphics[width=\stopMotionSize]{\stopMotionPath\thestopMotionCounter.png} % The image
       % Add 1 to counter. If it is greater than the number of images, return to 1
       \ifthenelse{\thestopMotionCounter < \stopMotionNbImages}{
         \addtocounter{stopMotionCounter}{1}
